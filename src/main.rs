@@ -27,7 +27,7 @@ fn main() {
         let mut input: String = input.trim().to_string();
         match input.as_ref() {
             "clear" | ":c" => {
-                println!("Clear...");
+                println!("Clear..."); //to be implemeneted`
             	continue;
             }
             "exit" | ":e" => {
