@@ -1,0 +1,8 @@
+[package]
+name = "crust"
+version = "0.1.0"
+authors = [
+    "NishanthSpShetty <nishanthspshetty@gmail.com>",
+    "nikhilsaldanha <nikhilsaldanha@bitbucket.org>"
+]
+
