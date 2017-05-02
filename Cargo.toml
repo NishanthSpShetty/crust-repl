@@ -1,5 +1,5 @@
 [package]
-name = "crust"
+name = "crust-repl"
 version = "0.1.0"
 authors = [
     "NishanthSpShetty <nishanthspshetty@gmail.com>",

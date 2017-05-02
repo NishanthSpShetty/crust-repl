@@ -46,7 +46,7 @@ fn main() {
 
         let tokens = tok.tokenize();
         let strict = false;
-        let rust_lexeme = parser::init_parser(&tokens, strict).unwrap();
+        let rust_lexeme = parser::init_parser(&tokens, strict);
 
         //regenerate the code from lexemes
         let mut o: String = String::new();

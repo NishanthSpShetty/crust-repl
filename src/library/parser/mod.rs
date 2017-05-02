@@ -54,15 +54,15 @@ struct Parser {
 
 
 
-pub fn init_parser(lexeme: &Vec<Token>, strict_parser: bool) -> Option<Vec<String>> {
+pub fn init_parser(lexeme: &Vec<Token>, strict_parser: bool) -> Vec<String> {
 
     let mut stream: Vec<String> = Vec::new();
-//    stream.push(CRUST.get_doc().to_string());
+    stream.push(CRUST.get_doc().to_string());
 
     let mut parser = Parser {
         once_warned: false,
         in_block_stmnt: true,
-        in_expr: false,
+        in_expr: true,
         in_switch: false,
         strict: strict_parser,
         sym_tab: Vec::new(),
@@ -70,7 +70,7 @@ pub fn init_parser(lexeme: &Vec<Token>, strict_parser: bool) -> Option<Vec<Strin
     };
 
     stream.append(&mut parser.parse_program(&lexeme));
-    Some(stream)
+    stream
 }
 
 
@@ -127,6 +127,10 @@ fn parse_type(c_type: i32) -> Option<String> {
         5 => Some("char".to_string()),
         6 => Some("bool".to_string()),
         7 => Some("void".to_string()),
+        8 => Some("u32".to_string()),
+        9 => Some("u16".to_string()),
+        10 => Some("u64".to_string()),
+        13 => Some("u8".to_string()),
         _ => None,
     }
 }
@@ -147,6 +151,10 @@ impl Parser {
 
                 // matches any datatype
                 (BASE_DATATYPE, _) => {
+                    if lexeme[head].get_token_type() == KEYWORD_SIGNED ||
+                       lexeme[head].get_token_type() == KEYWORD_UNSIGNED {
+                        lookahead += 1;
+                    }
                     lookahead += 2;
                     match lexeme[lookahead].get_token_type() {
 
@@ -208,6 +216,7 @@ impl Parser {
                                 temp_lexeme.push(l);
                                 head += 1;
                             }
+                          //  println!(" {:?}", temp_lexeme);
                             // parse declaration
                             stream.append(&mut self.parse_declaration(&temp_lexeme));
                             temp_lexeme.clear();
@@ -221,7 +230,7 @@ impl Parser {
                             temp_lexeme.push(lexeme[head].clone());
                             stream.append(&mut self.parse_declaration(&temp_lexeme));
                             head += 1;
-                            println!("{}", lexeme[head].get_token_value());
+                           // println!("{}", lexeme[head].get_token_value());
                             temp_lexeme.clear();
 
 
@@ -579,7 +588,7 @@ impl Parser {
 
                     if t != lexeme.len() - 1 {
                         while lexeme[head].get_token_type() != SEMICOLON {
-                            println!("{:?}", lexeme[head]);
+                           // println!("{:?}", lexeme[head]);
 
                             stream.push(lexeme[head].get_token_value());
                             head += 1;
@@ -783,7 +792,21 @@ impl Parser {
             is_ptr: false,
             assigned_val: "NONE".to_string(),
         };
-        let mut head: usize = 1;
+
+        let mut type_: usize = 0;
+        let type_mod = match lexeme[0].get_token_type() {
+
+            KEYWORD_UNSIGNED => {
+                type_ = 1;
+                8
+            }
+            KEYWORD_SIGNED => {
+                type_ = 1;
+                0
+            }
+            _ => 0, 
+        };
+        let mut head: usize = type_ + 1;
         //let sym_idx:usize=0;
         while head < lexeme.len() {
 
@@ -796,8 +819,6 @@ impl Parser {
                     sym.assigned_val = String::from("");
                     head += 1;
                     let mut br = 0;
-
-
                     if sym.is_ptr == true {
                         if lexeme[head].get_token_type() == NULL {
                             while lexeme[head].get_token_type() != SEMICOLON &&
@@ -825,7 +846,7 @@ impl Parser {
 
                 SEMICOLON | COMMA => {
                     // used enum value in the symbol table
-                    sym.typ = lexeme[0].get_token_type() as i32;
+                     sym.typ = (lexeme[type_].get_token_type() as i32) + type_mod;
                     self.sym_tab.push(sym.clone());
                 }
                 OP_MUL => {
@@ -875,7 +896,7 @@ impl Parser {
                     stream.push("mut".to_string());
                 }
             }
-            // get the rust type
+            // get !the rust type
             if let Some(rust_type) = parse_type(i.typ) {
                 stream.push(rust_type);
             } else {
@@ -897,6 +918,7 @@ impl Parser {
             }
             stream.push(";".to_string());
         }
+       // println!("{:?}",stream);
         stream
     }
 
